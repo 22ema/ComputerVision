@@ -6,5 +6,7 @@ Computer Vision based module
 
 ## SkinDetector
 
+- Luminance Enhancement Skin Detector : https://development-ima.tistory.com/12
+
 #### Application
-- CallDetection Application
+- CallDetection Application : https://development-ima.tistory.com/12
