@@ -1,5 +1,6 @@
 # ComputerVision
-Computer Vision based module
+##### useful Computer Vision based module
+##### Not using Deep learning
 
 ## Regonition
 - LBP Recognizer : https://development-ima.tistory.com/11
