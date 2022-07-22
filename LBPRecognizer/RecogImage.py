@@ -23,15 +23,6 @@ class RecogImage():
             else:
                 return True, result
 
-    def thresholded(self, center, pixels):
-        out = []
-        for a in pixels:
-            if a >= center:
-                out.append(1)
-            else:
-                out.append(0)
-        return out
-
     def get_pixel_else_0(self, l, idx, idy, default=0):
         try:
             return l[idx,idy]
@@ -42,45 +33,40 @@ class RecogImage():
         for x in range(0, len(img)):
             for y in range(0, len(img[0])):
                 center        = img[x,y]
-                top_left      = self.get_pixel_else_0(img, x-1, y-1)
-                top_up        = self.get_pixel_else_0(img, x, y-1)
-                top_right     = self.get_pixel_else_0(img, x+1, y-1)
-                right         = self.get_pixel_else_0(img, x+1, y )
-                left          = self.get_pixel_else_0(img, x-1, y )
-                bottom_left   = self.get_pixel_else_0(img, x-1, y+1)
-                bottom_right  = self.get_pixel_else_0(img, x+1, y+1)
-                bottom_down   = self.get_pixel_else_0(img, x,   y+1 )
-                values = self.thresholded(center, [top_left, top_up, top_right, right, bottom_right,
-                                            bottom_down, bottom_left, left])
+                top_left      = 1 if center <= self.get_pixel_else_0(img, x-1, y-1) else 0
+                top_up        = 2 if center <= self.get_pixel_else_0(img, x, y-1) else 0
+                top_right     = 4 if center <= self.get_pixel_else_0(img, x+1, y-1) else 0
+                right         = 8 if center <= self.get_pixel_else_0(img, x+1, y ) else 0
+                left          = 128 if center <= self.get_pixel_else_0(img, x-1, y ) else 0
+                bottom_left   = 64 if center <= self.get_pixel_else_0(img, x-1, y+1) else 0
+                bottom_right  = 16 if center <= self.get_pixel_else_0(img, x+1, y+1) else 0
+                bottom_down   = 32 if center <= self.get_pixel_else_0(img, x,   y+1 ) else 0
+                values = [top_left, top_up, top_right, right, bottom_right, bottom_down, bottom_left, left]
 
-                weights = [1, 2, 4, 8, 16, 32, 64, 128]
-                res = 0
-                for a in range(0, len(values)):
-                    res += weights[a] * values[a]
-
+                res = sum(values)
                 self.transform_img.itemset((x,y), res)
-    def Adaptive_LBP(self, img):
-        for x in range(0, len(img)):
-            for y in range(0, len(img[0])):
-                center        = img[x,y]
-                top_left      = self.get_pixel_else_0(img, x-1, y-1) - int(center)
-                top_up        = self.get_pixel_else_0(img, x, y-1) - int(center)
-                top_right     = self.get_pixel_else_0(img, x+1, y-1) - int(center)
-                right         = self.get_pixel_else_0(img, x+1, y ) - int(center)
-                left          = self.get_pixel_else_0(img, x-1, y ) - int(center)
-                bottom_left   = self.get_pixel_else_0(img, x-1, y+1) - int(center)
-                bottom_right  = self.get_pixel_else_0(img, x+1, y+1) - int(center)
-                bottom_down   = self.get_pixel_else_0(img, x,   y+1 ) - int(center)
-                w = ((top_left + top_up + top_right + right + left + bottom_left + bottom_right + bottom_down) / 9) + math.sqrt(max(map(max, img))-min(map(min, img)))
-                values = self.thresholded(w, [top_left, top_up, top_right, right, bottom_right,
-                                            bottom_down, bottom_left, left])
+    # def Adaptive_LBP(self, img):
+    #     for x in range(0, len(img)):
+    #         for y in range(0, len(img[0])):
+    #             center        = img[x,y]
+    #             top_left      = self.get_pixel_else_0(img, x-1, y-1) - int(center)
+    #             top_up        = self.get_pixel_else_0(img, x, y-1) - int(center)
+    #             top_right     = self.get_pixel_else_0(img, x+1, y-1) - int(center)
+    #             right         = self.get_pixel_else_0(img, x+1, y ) - int(center)
+    #             left          = self.get_pixel_else_0(img, x-1, y ) - int(center)
+    #             bottom_left   = self.get_pixel_else_0(img, x-1, y+1) - int(center)
+    #             bottom_right  = self.get_pixel_else_0(img, x+1, y+1) - int(center)
+    #             bottom_down   = self.get_pixel_else_0(img, x,   y+1 ) - int(center)
+    #             w = ((top_left + top_up + top_right + right + left + bottom_left + bottom_right + bottom_down) / 9) + math.sqrt(max(map(max, img))-min(map(min, img)))
+    #             values = self.thresholded(w, [top_left, top_up, top_right, right, bottom_right,
+    #                                         bottom_down, bottom_left, left])
 
-                weights = [1, 2, 4, 8, 16, 32, 64, 128]
-                res = 0
-                for a in range(0, len(values)):
-                    res += weights[a] * values[a]
+    #             weights = [1, 2, 4, 8, 16, 32, 64, 128]
+    #             res = 0
+    #             for a in range(0, len(values)):
+    #                 res += weights[a] * values[a]
 
-                self.transform_img.itemset((x,y), res)
+    #             self.transform_img.itemset((x,y), res)
 
     def lbp_run(self, recent_frame):
         gray = cv2.cvtColor(recent_frame, cv2.COLOR_BGR2GRAY)
@@ -100,7 +86,7 @@ class RecogImage():
 
 # exmaple code
 if __name__ == "__main__":
-    path = "../../dataset/test/sinhan_atm_test/head_only_data"
+    path = "../../../dataset/test/sinhan_atm_test/head_only_data"
     dir_list= sorted(os.listdir(path), key=lambda x : int(x.split('.')[0]))
     prev_hist = list()
     recog_human = RecogImage()
@@ -109,6 +95,7 @@ if __name__ == "__main__":
         # 이미지
         recent_frame = cv2.imread(recent_frame_path)
         recog_change, result_hist = recog_human.recog_human(recent_frame)
+        break
         if result_hist == None:
             print("Not exist prev frame")
         else:
